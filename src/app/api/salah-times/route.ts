@@ -11,6 +11,9 @@ const SALAH_FALLBACK = {
   maghrib: 'Sunset + 15 min',
   isha: '20:30',
   jumuah: '13:30',
+  jumuahSlots: [
+    { khutbah: '13:15', iqamah: '13:30' }
+  ],
 }
 
 export async function GET(request: NextRequest) {
@@ -82,7 +85,8 @@ export async function POST(request: NextRequest) {
       asr,
       maghrib,
       isha,
-      jumuah
+      jumuah,
+      jumuahSlots,
     } = body
 
     // Validate required fields
@@ -107,13 +111,14 @@ export async function POST(request: NextRequest) {
       existingTimes.maghrib = maghrib
       existingTimes.isha = isha
       existingTimes.jumuah = jumuah
+      existingTimes.jumuahSlots = Array.isArray(jumuahSlots) ? jumuahSlots : existingTimes.jumuahSlots
 
       await existingTimes.save()
 
       return NextResponse.json({ success: true, salahTimes: existingTimes, message: 'Prayer times updated successfully' })
     } else {
       // Create new prayer times
-      const salahTimes = new SalahTimes({ masjidId, date: queryDate, fajr, dhuhr, asr, maghrib, isha, jumuah })
+      const salahTimes = new SalahTimes({ masjidId, date: queryDate, fajr, dhuhr, asr, maghrib, isha, jumuah, jumuahSlots })
 
       await salahTimes.save()
 

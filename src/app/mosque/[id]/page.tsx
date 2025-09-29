@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import MosqueDetails from '@/components/MosqueDetails'
+import WeeklyTimetable from '@/components/WeeklyTimetable'
 import { Mosque } from '@/types'
 
 export default function MosquePage() {
@@ -85,6 +86,16 @@ export default function MosquePage() {
             salahTimes={salahTimes} 
             events={events}
           />
+          <div className="mt-8">
+            <WeeklyTimetable base={{
+              fajr: (salahTimes && salahTimes.fajr) || '05:30',
+              dhuhr: (salahTimes && salahTimes.dhuhr) || '13:30',
+              asr: (salahTimes && salahTimes.asr) || '17:00',
+              maghrib: (salahTimes && salahTimes.maghrib) || 'Sunset + 15 min',
+              isha: (salahTimes && salahTimes.isha) || '20:30',
+              jumuah: (salahTimes && salahTimes.jumuah) || '13:30',
+            }} />
+          </div>
         </div>
       </main>
       <Footer />

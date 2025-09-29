@@ -17,7 +17,7 @@ const MOSQUE_DEMO = {
   contactInfo: { phone: '000-000-0000', email: 'info@central.demo' },
   imam: { name: 'Imam Demo' },
   images: [],
-  isApproved: true,y
+  isApproved: true,
   adminId: 'demo-admin',
   createdAt: new Date(),
   updatedAt: new Date(),

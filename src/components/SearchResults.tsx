@@ -25,6 +25,21 @@ function computeAdhanFrom12h(time: string): string | null {
   return `${outH}:${outM} ${outAP}`
 }
 
+const TimeRow = ({ label, time, adhan, subNote }: { label: string; time: string; adhan?: string | null; subNote?: string }) => (
+  <div className="py-1.5">
+    <div className="flex items-baseline justify-between">
+      <span className="text-gray-600">{label}</span>
+      <span className="font-semibold text-gray-900">{time}</span>
+    </div>
+    {(adhan || subNote) && (
+      <div className="flex items-start justify-between text-[11px] text-gray-500">
+        <span className="invisible">{label}</span>
+        <span>{subNote ? subNote : `Adhan ${adhan}`}</span>
+      </div>
+    )}
+  </div>
+)
+
 export default function SearchResults({ mosques, loading }: SearchResultsProps) {
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null)
 
@@ -149,41 +164,21 @@ export default function SearchResults({ mosques, loading }: SearchResultsProps) 
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                   <Clock className="w-4 h-4 mr-2" />
-                  Today\'s Prayer Times
+                  Today's Prayer Times
                 </h4>
-                <div className="space-y-2 text-sm">
-                  {(() => {
-                    const fajr = '5:30 AM'; const dhuhr = '12:15 PM'; const asr = '3:45 PM'; const maghrib = '6:20 PM'; const isha = '7:45 PM'; const jumuah = '1:30 PM'
-                    return (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Fajr</span>
-                          <span className="font-medium">{fajr} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(fajr)})</span></span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Dhuhr</span>
-                          <span className="font-medium">{dhuhr} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(dhuhr)})</span></span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Asr</span>
-                          <span className="font-medium">{asr} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(asr)})</span></span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Maghrib</span>
-                          <span className="font-medium">{maghrib} <span className="text-gray-500">(Salah after adhan at sunset)</span></span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Isha</span>
-                          <span className="font-medium">{isha} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(isha)})</span></span>
-                        </div>
-                        <div className="flex justify-between pt-2 border-t border-gray-200">
-                          <span className="text-gray-600">Jumuah</span>
-                          <span className="font-medium">{jumuah} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(jumuah)})</span></span>
-                        </div>
-                      </>
-                    )
-                  })()}
-                </div>
+                {(() => {
+                  const fajr = '5:30 AM'; const dhuhr = '12:15 PM'; const asr = '3:45 PM'; const maghrib = '6:20 PM'; const isha = '7:45 PM'; const jumuah = '1:30 PM'
+                  return (
+                    <div className="divide-y divide-gray-200">
+                      <TimeRow label="Fajr" time={fajr} adhan={computeAdhanFrom12h(fajr)} />
+                      <TimeRow label="Dhuhr" time={dhuhr} adhan={computeAdhanFrom12h(dhuhr)} />
+                      <TimeRow label="Asr" time={asr} adhan={computeAdhanFrom12h(asr)} />
+                      <TimeRow label="Maghrib" time={maghrib} subNote="Salah after adhan at sunset" />
+                      <TimeRow label="Isha" time={isha} adhan={computeAdhanFrom12h(isha)} />
+                      <TimeRow label="Jumuah" time={jumuah} adhan={computeAdhanFrom12h(jumuah)} />
+                    </div>
+                  )
+                })()}
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <Link 
                     href={`/mosque/${mosque._id}/events`}

@@ -9,6 +9,7 @@ export interface ISalahTimes extends Document {
   maghrib: string;
   isha: string;
   jumuah?: string;
+  jumuahSlots?: { khutbah?: string; iqamah: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +47,15 @@ const SalahTimesSchema = new Schema<ISalahTimes>({
   jumuah: {
     type: String,
   },
+  jumuahSlots: [
+    new Schema(
+      {
+        khutbah: { type: String },
+        iqamah: { type: String, required: true },
+      },
+      { _id: false }
+    )
+  ],
 }, {
   timestamps: true,
 });

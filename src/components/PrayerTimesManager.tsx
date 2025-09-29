@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Clock, Save, Plus } from 'lucide-react'
 
+const jumuahSlotSchema = z.object({ khutbah: z.string().optional(), iqamah: z.string().min(1, 'Iqamah is required') })
+
 const prayerTimesSchema = z.object({
   fajr: z.string().min(1, 'Fajr time is required'),
   dhuhr: z.string().min(1, 'Dhuhr time is required'),
@@ -13,6 +15,7 @@ const prayerTimesSchema = z.object({
   maghrib: z.string().min(1, 'Maghrib time is required'),
   isha: z.string().min(1, 'Isha time is required'),
   jumuah: z.string().optional(),
+  jumuahSlots: z.array(jumuahSlotSchema).optional(),
 })
 
 type PrayerTimesData = z.infer<typeof prayerTimesSchema>
@@ -22,6 +25,7 @@ export default function PrayerTimesManager() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [slots, setSlots] = useState<{ khutbah?: string; iqamah: string }[]>([])
 
   const {
     register,
@@ -51,6 +55,7 @@ export default function PrayerTimesManager() {
         setValue('maghrib', data.salahTimes.maghrib)
         setValue('isha', data.salahTimes.isha)
         setValue('jumuah', data.salahTimes.jumuah || '')
+        setSlots(data.salahTimes.jumuahSlots || [])
       } else {
         // Set default times if none exist
         setValue('fajr', '05:30')
@@ -59,6 +64,7 @@ export default function PrayerTimesManager() {
         setValue('maghrib', '18:20')
         setValue('isha', '19:45')
         setValue('jumuah', '12:30')
+        setSlots([{ khutbah: '12:15', iqamah: '12:30' }])
       }
     } catch (error) {
       console.error('Error fetching prayer times:', error)
@@ -78,7 +84,8 @@ export default function PrayerTimesManager() {
         body: JSON.stringify({
           masjidId: 'temp-masjid-id', // This would be the actual mosque ID
           date: selectedDate,
-          ...data
+          ...data,
+          jumuahSlots: slots,
         }),
       })
 
@@ -230,6 +237,40 @@ export default function PrayerTimesManager() {
           </div>
         </div>
 
+        {/* Multiple Jumuah Slots */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-700">Jumuah Slots (Khutbah & Iqamah)</div>
+            <button type="button" onClick={() => setSlots([...slots, { khutbah: '', iqamah: '' }])} className="btn-secondary flex items-center">
+              <Plus className="w-4 h-4 mr-1" /> Add Slot
+            </button>
+          </div>
+          <div className="space-y-3">
+            {slots.map((slot, idx) => (
+              <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Khutbah (optional)</label>
+                  <input type="time" value={slot.khutbah || ''} onChange={(e) => {
+                    const next = [...slots]; next[idx] = { ...next[idx], khutbah: e.target.value }; setSlots(next)
+                  }} className="input-field" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Iqamah *</label>
+                  <input type="time" value={slot.iqamah} onChange={(e) => {
+                    const next = [...slots]; next[idx] = { ...next[idx], iqamah: e.target.value }; setSlots(next)
+                  }} className="input-field" />
+                </div>
+                <div className="flex items-end">
+                  <button type="button" onClick={() => setSlots(slots.filter((_, i) => i !== idx))} className="btn-secondary w-full">Remove</button>
+                </div>
+              </div>
+            ))}
+            {slots.length === 0 && (
+              <p className="text-xs text-gray-500">No slots added. Click "Add Slot" to add Jumuah 1/2/3.</p>
+            )}
+          </div>
+        </div>
+
         {/* Save Button */}
         <div className="flex justify-end">
           <button
@@ -272,6 +313,16 @@ export default function PrayerTimesManager() {
               <div className="text-center">
                 <div className="text-sm text-gray-600">Jumuah</div>
                 <div className="font-semibold text-primary-600">{prayerTimes.jumuah}</div>
+              </div>
+            )}
+            {Array.isArray(prayerTimes.jumuahSlots) && prayerTimes.jumuahSlots.length > 0 && (
+              <div className="md:col-span-3 text-left">
+                <div className="text-sm text-gray-600 mb-1">Jumuah Slots</div>
+                <ul className="list-disc list-inside text-primary-700">
+                  {prayerTimes.jumuahSlots.map((s: any, i: number) => (
+                    <li key={i}>Jumuah {i+1}: {s.khutbah ? `Khutbah ${s.khutbah}, ` : ''}Iqamah {s.iqamah}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
