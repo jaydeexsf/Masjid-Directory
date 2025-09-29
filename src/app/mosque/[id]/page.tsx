@@ -6,13 +6,13 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import MosqueDetails from '@/components/MosqueDetails'
 import WeeklyTimetable from '@/components/WeeklyTimetable'
-import { Mosque } from '@/types'
+import { Mosque, SalahTimes } from '@/types'
 
 export default function MosquePage() {
   const params = useParams()
   const [mosque, setMosque] = useState<Mosque | null>(null)
   const [loading, setLoading] = useState(true)
-  const [salahTimes, setSalahTimes] = useState(null)
+  const [salahTimes, setSalahTimes] = useState<SalahTimes | null>(null)
   const [events, setEvents] = useState([])
 
   useEffect(() => {

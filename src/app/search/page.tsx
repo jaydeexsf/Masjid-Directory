@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -8,7 +8,7 @@ import SearchResults from '@/components/SearchResults'
 import SearchFilters from '@/components/SearchFilters'
 import { Mosque } from '@/types'
 
-export default function SearchPage() {
+function SearchPageInner() {
   const searchParams = useSearchParams()
   const [mosques, setMosques] = useState<Mosque[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,5 +67,13 @@ export default function SearchPage() {
       </main>
       <Footer />
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-primary" />}> 
+      <SearchPageInner />
+    </Suspense>
   )
 }
