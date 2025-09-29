@@ -2,7 +2,7 @@ export interface User {
   _id: string;
   email: string;
   name: string;
-  role: 'admin' | 'masjid_admin';
+  role: 'super_admin' | 'admin' | 'masjid_admin';
   masjidId?: string;
   createdAt: Date;
   updatedAt: Date;

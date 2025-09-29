@@ -87,3 +87,4 @@ export default function WeeklyTimetable({ base }: { base?: { fajr: string; dhuhr
     </div>
   )
 }
+

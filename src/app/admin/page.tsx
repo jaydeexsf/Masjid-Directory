@@ -13,7 +13,7 @@ export default function AdminPage() {
     // Dev-only: read localStorage flag set by login
     try {
       const role = typeof window !== 'undefined' ? localStorage.getItem('authRole') : null
-      setIsAuthenticated(role === 'admin')
+      setIsAuthenticated(role === 'admin' || role === 'super_admin')
     } catch {}
     setLoading(false)
   }, [])

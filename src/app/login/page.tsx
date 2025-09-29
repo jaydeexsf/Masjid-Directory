@@ -24,6 +24,15 @@ export default function LoginPage() {
       if (!email) throw new Error('Enter username: admin or user')
 
       const username = email.trim().toLowerCase()
+      if (username === 'superadmin') {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('authUser', 'superadmin')
+          localStorage.setItem('authRole', 'super_admin')
+        }
+        window.location.href = '/admin'
+        return
+      }
+
       if (username === 'admin') {
         if (typeof window !== 'undefined') {
           localStorage.setItem('authUser', 'admin')
@@ -42,7 +51,7 @@ export default function LoginPage() {
         return
       }
 
-      throw new Error('Use username "admin" or "user" (any password)')
+      throw new Error('Use username "superadmin", "admin" or "user" (any password)')
     } catch (err: any) {
       setError(err?.message || 'Failed to sign in')
     } finally {
