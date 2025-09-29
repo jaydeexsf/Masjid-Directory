@@ -10,8 +10,11 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check authentication status
-    // This would typically check for a valid session/token
+    // Dev-only: read localStorage flag set by login
+    try {
+      const role = typeof window !== 'undefined' ? localStorage.getItem('authRole') : null
+      setIsAuthenticated(role === 'admin')
+    } catch {}
     setLoading(false)
   }, [])
 

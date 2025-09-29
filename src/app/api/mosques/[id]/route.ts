@@ -40,7 +40,7 @@ const EVENTS_DEMO = [
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const db = await connectDBSafe()
@@ -49,7 +49,8 @@ export async function GET(
       return NextResponse.json({ success: true, mosque: MOSQUE_DEMO, salahTimes: SALAH_DEMO, upcomingEvents: EVENTS_DEMO, fallback: true })
     }
 
-    const mosque = await Mosque.findById(params.id)
+    const { id } = await context.params
+    const mosque = await Mosque.findById(id)
     if (!mosque) {
       return NextResponse.json(
         { success: false, error: 'Mosque not found' },
@@ -62,13 +63,13 @@ export async function GET(
     today.setHours(0, 0, 0, 0)
     
     const salahTimes = await SalahTimes.findOne({
-      masjidId: params.id,
+      masjidId: id,
       date: today
     })
 
     // Get upcoming events
     const upcomingEvents = await Event.find({
-      masjidId: params.id,
+      masjidId: id,
       date: { $gte: today }
     }).sort({ date: 1 }).limit(5)
 
@@ -90,7 +91,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const db = await connectDBSafe()
@@ -103,8 +104,9 @@ export async function PUT(
     delete updateData._id
     delete updateData.createdAt
 
+    const { id } = await context.params
     const mosque = await Mosque.findByIdAndUpdate(
-      params.id,
+      id,
       updateData,
       { new: true, runValidators: true }
     )

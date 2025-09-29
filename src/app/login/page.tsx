@@ -19,10 +19,30 @@ export default function LoginPage() {
     const password = String(form.get('password') || '')
 
     try {
-      // Placeholder auth. Replace with real API/session logic later.
-      await new Promise((r) => setTimeout(r, 700))
-      if (!email || !password) throw new Error('Invalid credentials')
-      window.location.href = '/admin'
+      // Dev-only placeholder auth. Accepts any password.
+      await new Promise((r) => setTimeout(r, 500))
+      if (!email) throw new Error('Enter username: admin or user')
+
+      const username = email.trim().toLowerCase()
+      if (username === 'admin') {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('authUser', 'admin')
+          localStorage.setItem('authRole', 'admin')
+        }
+        window.location.href = '/admin'
+        return
+      }
+
+      if (username === 'user') {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('authUser', 'user')
+          localStorage.setItem('authRole', 'masjid_admin')
+        }
+        window.location.href = '/'
+        return
+      }
+
+      throw new Error('Use username "admin" or "user" (any password)')
     } catch (err: any) {
       setError(err?.message || 'Failed to sign in')
     } finally {
@@ -41,8 +61,8 @@ export default function LoginPage() {
 
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input name="email" type="email" required placeholder="you@example.com" className="input-field" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input name="email" type="text" required placeholder="admin or user" className="input-field" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
