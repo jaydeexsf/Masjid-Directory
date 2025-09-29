@@ -9,8 +9,8 @@ export default function SearchSection() {
   const [selectedCity, setSelectedCity] = useState('')
 
   const popularCities = [
-    'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
-    'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'
+    'Cairo', 'Istanbul', 'Karachi', 'Dhaka', 'Jakarta',
+    'Kuala Lumpur', 'Riyadh', 'Jeddah', 'Dubai', 'Abu Dhabi'
   ]
 
   return (
@@ -21,7 +21,7 @@ export default function SearchSection() {
             Find Your Local Masjid
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Search for mosques by name, location, or city to find accurate prayer times and community information.
+            Search for masjids and accurate congregational (iqamah) times—built especially for small masjids without websites. Adhan is typically 15 minutes before salah; Maghrib salah begins after the adhan at sunset.
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export default function SearchSection() {
           </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats copy tweak */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -114,7 +114,7 @@ export default function SearchSection() {
               <Filter className="w-8 h-8 text-primary-600" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">50+</h3>
-            <p className="text-gray-600">Cities Covered</p>
+            <p className="text-gray-600">Cities Worldwide</p>
           </div>
           <div className="text-center">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">

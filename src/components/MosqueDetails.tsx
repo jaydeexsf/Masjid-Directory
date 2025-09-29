@@ -20,6 +20,26 @@ export default function MosqueDetails({ mosque, salahTimes, events }: MosqueDeta
     { id: 'events', label: 'Events' },
   ]
 
+  const computeAdhan = (time: string) => {
+    // If time contains special text (e.g., 'Sunset + 15 min'), return it as-is
+    if (!/^[0-2]?\d:[0-5]\d$/.test(time)) return null
+    const [h, m] = time.split(':').map(Number)
+    const date = new Date(); date.setHours(h, m - 15, 0, 0)
+    const ah = date.getHours().toString().padStart(2, '0')
+    const am = date.getMinutes().toString().padStart(2, '0')
+    return `${ah}:${am}`
+  }
+
+  const Row = ({ label, value }: { label: string, value: string }) => (
+    <div className="flex justify-between">
+      <span>{label}</span>
+      <span className="font-semibold">
+        {value}
+        {(() => { const a = computeAdhan(value); return a ? ` (Adhan ${a})` : '' })()}
+      </span>
+    </div>
+  )
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -85,45 +105,31 @@ export default function MosqueDetails({ mosque, salahTimes, events }: MosqueDeta
                 <Navigation className="w-4 h-4 mr-2" />
                 Get Directions
               </a>
-              <button className="btn-secondary flex items-center justify-center">
+              <Link href={`/mosque/${(mosque as any)._id || 'demo-1'}/events`} className="btn-secondary flex items-center justify-center">
                 <Calendar className="w-4 h-4 mr-2" />
                 View Events
-              </button>
+              </Link>
             </div>
           </div>
 
           {/* Prayer Times Card */}
           <div className="bg-gradient-accent rounded-xl p-6 text-white">
-            <h3 className="text-xl font-bold mb-4 flex items-center">
+            <h3 className="text-xl font-bold mb-2 flex items-center">
               <Clock className="w-5 h-5 mr-2" />
-              Today's Prayer Times
+              Today\'s Prayer Times
             </h3>
+            <p className="text-white/80 text-xs mb-4">Adhan is typically 15 minutes before salah. Maghrib salah begins after adhan at sunset.</p>
             {salahTimes ? (
               <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span>Fajr</span>
-                  <span className="font-semibold">{salahTimes.fajr}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Dhuhr</span>
-                  <span className="font-semibold">{salahTimes.dhuhr}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Asr</span>
-                  <span className="font-semibold">{salahTimes.asr}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Maghrib</span>
-                  <span className="font-semibold">{salahTimes.maghrib}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Isha</span>
-                  <span className="font-semibold">{salahTimes.isha}</span>
-                </div>
+                <Row label="Fajr" value={salahTimes.fajr} />
+                <Row label="Dhuhr" value={salahTimes.dhuhr} />
+                <Row label="Asr" value={salahTimes.asr} />
+                <Row label="Maghrib" value={salahTimes.maghrib} />
+                <Row label="Isha" value={salahTimes.isha} />
                 {salahTimes.jumuah && (
                   <div className="flex justify-between pt-2 border-t border-white/20">
                     <span>Jumuah</span>
-                    <span className="font-semibold">{salahTimes.jumuah}</span>
+                    <span className="font-semibold">{salahTimes.jumuah} {(() => { const a = computeAdhan(salahTimes.jumuah); return a ? `(Adhan ${a})` : '' })()}</span>
                   </div>
                 )}
               </div>
@@ -162,8 +168,7 @@ export default function MosqueDetails({ mosque, salahTimes, events }: MosqueDeta
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">About This Masjid</h3>
                 <p className="text-gray-600 leading-relaxed">
                   Welcome to {mosque.name}, located in the heart of {mosque.city}. 
-                  Our community is dedicated to serving the local Muslim population 
-                  with regular prayers, educational programs, and community events.
+                  Our mission includes making congregational salah (iqamah) times easy to find—especially for small masjids without websites. Adhan is usually 15 minutes before salah; Maghrib salah begins after the adhan at sunset.
                 </p>
               </div>
 
@@ -203,27 +208,33 @@ export default function MosqueDetails({ mosque, salahTimes, events }: MosqueDeta
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary-600 mb-1">Fajr</div>
                         <div className="text-lg font-semibold">{salahTimes.fajr}</div>
+                        {computeAdhan(salahTimes.fajr) && <div className="text-xs text-gray-500">Adhan {computeAdhan(salahTimes.fajr)}</div>}
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary-600 mb-1">Dhuhr</div>
                         <div className="text-lg font-semibold">{salahTimes.dhuhr}</div>
+                        {computeAdhan(salahTimes.dhuhr) && <div className="text-xs text-gray-500">Adhan {computeAdhan(salahTimes.dhuhr)}</div>}
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary-600 mb-1">Asr</div>
                         <div className="text-lg font-semibold">{salahTimes.asr}</div>
+                        {computeAdhan(salahTimes.asr) && <div className="text-xs text-gray-500">Adhan {computeAdhan(salahTimes.asr)}</div>}
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary-600 mb-1">Maghrib</div>
                         <div className="text-lg font-semibold">{salahTimes.maghrib}</div>
+                        <div className="text-xs text-gray-500">Salah begins after adhan at sunset</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary-600 mb-1">Isha</div>
                         <div className="text-lg font-semibold">{salahTimes.isha}</div>
+                        {computeAdhan(salahTimes.isha) && <div className="text-xs text-gray-500">Adhan {computeAdhan(salahTimes.isha)}</div>}
                       </div>
                       {salahTimes.jumuah && (
                         <div className="text-center">
                           <div className="text-2xl font-bold text-primary-600 mb-1">Jumuah</div>
                           <div className="text-lg font-semibold">{salahTimes.jumuah}</div>
+                          {computeAdhan(salahTimes.jumuah) && <div className="text-xs text-gray-500">Adhan {computeAdhan(salahTimes.jumuah)}</div>}
                         </div>
                       )}
                     </div>

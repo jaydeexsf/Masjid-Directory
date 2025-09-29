@@ -10,6 +10,21 @@ interface SearchResultsProps {
   loading: boolean
 }
 
+function computeAdhanFrom12h(time: string): string | null {
+  const m = time.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+  if (!m) return null
+  let [_, hh, mm, ap] = m
+  let hours = parseInt(hh, 10)
+  const minutes = parseInt(mm, 10)
+  if (ap.toUpperCase() === 'PM' && hours !== 12) hours += 12
+  if (ap.toUpperCase() === 'AM' && hours === 12) hours = 0
+  const d = new Date(); d.setHours(hours, minutes - 15, 0, 0)
+  const outH = ((d.getHours() + 11) % 12) + 1
+  const outM = d.getMinutes().toString().padStart(2, '0')
+  const outAP = d.getHours() >= 12 ? 'PM' : 'AM'
+  return `${outH}:${outM} ${outAP}`
+}
+
 export default function SearchResults({ mosques, loading }: SearchResultsProps) {
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null)
 
@@ -121,7 +136,7 @@ export default function SearchResults({ mosques, loading }: SearchResultsProps) 
                     View Details
                   </Link>
                   <Link 
-                    href={`/mosque/${mosque._id}/prayer-times`}
+                    href={`/mosque/${mosque._id}`}
                     className="btn-secondary text-center"
                   >
                     <Clock className="w-4 h-4 mr-2 inline" />
@@ -134,29 +149,40 @@ export default function SearchResults({ mosques, loading }: SearchResultsProps) 
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                   <Clock className="w-4 h-4 mr-2" />
-                  Today's Prayer Times
+                  Today\'s Prayer Times
                 </h4>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Fajr</span>
-                    <span className="font-medium">5:30 AM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dhuhr</span>
-                    <span className="font-medium">12:15 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Asr</span>
-                    <span className="font-medium">3:45 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Maghrib</span>
-                    <span className="font-medium">6:20 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Isha</span>
-                    <span className="font-medium">7:45 PM</span>
-                  </div>
+                  {(() => {
+                    const fajr = '5:30 AM'; const dhuhr = '12:15 PM'; const asr = '3:45 PM'; const maghrib = '6:20 PM'; const isha = '7:45 PM'; const jumuah = '1:30 PM'
+                    return (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Fajr</span>
+                          <span className="font-medium">{fajr} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(fajr)})</span></span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Dhuhr</span>
+                          <span className="font-medium">{dhuhr} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(dhuhr)})</span></span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Asr</span>
+                          <span className="font-medium">{asr} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(asr)})</span></span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Maghrib</span>
+                          <span className="font-medium">{maghrib} <span className="text-gray-500">(Salah after adhan at sunset)</span></span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Isha</span>
+                          <span className="font-medium">{isha} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(isha)})</span></span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-gray-200">
+                          <span className="text-gray-600">Jumuah</span>
+                          <span className="font-medium">{jumuah} <span className="text-gray-500">(Adhan {computeAdhanFrom12h(jumuah)})</span></span>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <Link 

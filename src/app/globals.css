@@ -1,6 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #E6E5E1;
+  --color-primary-100: #BAD0CC;
+  --color-primary-500: #409891;
+  --color-primary-600: #48ADB7;
+
+  --color-background: #E6E5E1;
+  --color-accent: #48ADB7;
+  --color-secondary: #409891;
+  --color-muted: #BAD0CC;
+
+  --background-image-gradient-primary: linear-gradient(135deg, #E6E5E1 0%, #BAD0CC 100%);
+  --background-image-gradient-accent: linear-gradient(135deg, #409891 0%, #48ADB7 100%);
+}
 
 @layer base {
   html {
@@ -14,7 +27,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-500 to-accent text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200;
+    @apply bg-gradient-accent text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200;
   }
   
   .btn-secondary {

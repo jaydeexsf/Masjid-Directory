@@ -19,9 +19,7 @@ export default function Hero() {
                 <span className="block gradient-text">Local Masjid</span>
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed">
-                Connect with your community through accurate prayer times, 
-                mosque information, and upcoming events. Discover the nearest 
-                masjid and stay connected with your local Muslim community.
+                Connect with your community through accurate congregational (iqamah) times, mosque information, and upcoming events. Built for small masjids without websites—adhan is typically 15 minutes before salah; Maghrib salah begins after the adhan at sunset.
               </p>
             </div>
 
@@ -31,7 +29,7 @@ export default function Hero() {
                 <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
                   <Clock className="w-5 h-5 text-primary-600" />
                 </div>
-                <span className="text-sm font-medium text-gray-700">Prayer Times</span>
+                <span className="text-sm font-medium text-gray-700">Congregational Times</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">

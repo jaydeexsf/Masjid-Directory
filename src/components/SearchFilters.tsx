@@ -7,7 +7,6 @@ interface SearchFiltersProps {
   filters: {
     city: string
     name: string
-    hasJumuah: boolean
   }
   setFilters: (filters: any) => void
 }
@@ -16,9 +15,9 @@ export default function SearchFilters({ filters, setFilters }: SearchFiltersProp
   const [isExpanded, setIsExpanded] = useState(false)
 
   const popularCities = [
-    'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
-    'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose',
-    'Austin', 'Jacksonville', 'Fort Worth', 'Columbus', 'Charlotte'
+    'Cairo', 'Istanbul', 'Karachi', 'Dhaka', 'Jakarta',
+    'Kuala Lumpur', 'Riyadh', 'Jeddah', 'Dubai', 'Abu Dhabi',
+    'Casablanca', 'Rabat', 'Tunis', 'Algiers', 'Doha'
   ]
 
   const handleFilterChange = (key: string, value: any) => {
@@ -26,10 +25,10 @@ export default function SearchFilters({ filters, setFilters }: SearchFiltersProp
   }
 
   const clearFilters = () => {
-    setFilters({ city: '', name: '', hasJumuah: false })
+    setFilters({ city: '', name: '' })
   }
 
-  const hasActiveFilters = filters.city || filters.name || filters.hasJumuah
+  const hasActiveFilters = filters.city || filters.name
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
@@ -95,24 +94,6 @@ export default function SearchFilters({ filters, setFilters }: SearchFiltersProp
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Additional Filters */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Additional Filters
-          </label>
-          <div className="space-y-3">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.hasJumuah}
-                onChange={(e) => handleFilterChange('hasJumuah', e.target.checked)}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">Has Jumuah Prayer</span>
-            </label>
           </div>
         </div>
 

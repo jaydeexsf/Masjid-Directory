@@ -15,7 +15,6 @@ export default function SearchPage() {
   const [filters, setFilters] = useState({
     city: searchParams.get('city') || '',
     name: searchParams.get('q') || '',
-    hasJumuah: false,
   })
 
   useEffect(() => {
@@ -28,7 +27,6 @@ export default function SearchPage() {
       const queryParams = new URLSearchParams()
       if (filters.name) queryParams.append('name', filters.name)
       if (filters.city) queryParams.append('city', filters.city)
-      if (filters.hasJumuah) queryParams.append('hasJumuah', 'true')
 
       const response = await fetch(`/api/mosques?${queryParams}`)
       const data = await response.json()

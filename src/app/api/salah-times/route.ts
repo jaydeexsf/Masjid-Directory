@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
+import { connectDBSafe } from '@/lib/mongodb'
 import SalahTimes from '@/models/SalahTimes'
+
+const SALAH_FALLBACK = {
+  masjidId: 'demo-1',
+  date: new Date(new Date().setHours(0,0,0,0)),
+  fajr: '05:30',
+  dhuhr: '13:30',
+  asr: '17:00',
+  maghrib: 'Sunset + 15 min',
+  isha: '20:30',
+  jumuah: '13:30',
+}
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB()
+    const db = await connectDBSafe()
 
     const { searchParams } = new URL(request.url)
     const masjidId = searchParams.get('masjidId')
@@ -19,6 +30,11 @@ export async function GET(request: NextRequest) {
 
     const queryDate = date ? new Date(date) : new Date()
     queryDate.setHours(0, 0, 0, 0)
+
+    if (!db) {
+      const data = { ...SALAH_FALLBACK, masjidId, date: queryDate }
+      return NextResponse.json({ success: true, salahTimes: data, fallback: true })
+    }
 
     const salahTimes = await SalahTimes.findOne({
       masjidId,
@@ -40,15 +56,22 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching prayer times:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch prayer times' },
-      { status: 500 }
+      { success: true, salahTimes: SALAH_FALLBACK, fallback: true },
+      { status: 200 }
     )
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB()
+    const db = await connectDBSafe()
+
+    if (!db) {
+      return NextResponse.json(
+        { success: false, error: 'Database unavailable in demo mode' },
+        { status: 503 }
+      )
+    }
 
     const body = await request.json()
     const {
@@ -74,10 +97,7 @@ export async function POST(request: NextRequest) {
     queryDate.setHours(0, 0, 0, 0)
 
     // Check if prayer times already exist for this date
-    const existingTimes = await SalahTimes.findOne({
-      masjidId,
-      date: queryDate
-    })
+    const existingTimes = await SalahTimes.findOne({ masjidId, date: queryDate })
 
     if (existingTimes) {
       // Update existing prayer times
@@ -90,31 +110,14 @@ export async function POST(request: NextRequest) {
 
       await existingTimes.save()
 
-      return NextResponse.json({
-        success: true,
-        salahTimes: existingTimes,
-        message: 'Prayer times updated successfully'
-      })
+      return NextResponse.json({ success: true, salahTimes: existingTimes, message: 'Prayer times updated successfully' })
     } else {
       // Create new prayer times
-      const salahTimes = new SalahTimes({
-        masjidId,
-        date: queryDate,
-        fajr,
-        dhuhr,
-        asr,
-        maghrib,
-        isha,
-        jumuah
-      })
+      const salahTimes = new SalahTimes({ masjidId, date: queryDate, fajr, dhuhr, asr, maghrib, isha, jumuah })
 
       await salahTimes.save()
 
-      return NextResponse.json({
-        success: true,
-        salahTimes,
-        message: 'Prayer times created successfully'
-      })
+      return NextResponse.json({ success: true, salahTimes, message: 'Prayer times created successfully' })
     }
 
   } catch (error) {
