@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Clock, Save, Plus } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 const jumuahSlotSchema = z.object({ khutbah: z.string().optional(), iqamah: z.string().min(1, 'Iqamah is required') })
 
@@ -26,6 +27,7 @@ export default function PrayerTimesManager() {
   const [saving, setSaving] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [slots, setSlots] = useState<{ khutbah?: string; iqamah: string }[]>([])
+  const { user } = useAuth()
 
   const {
     register,
@@ -39,12 +41,17 @@ export default function PrayerTimesManager() {
 
   useEffect(() => {
     fetchPrayerTimes()
-  }, [selectedDate])
+  }, [selectedDate, user?.masjidId])
 
   const fetchPrayerTimes = async () => {
+    if (!user?.masjidId) {
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
-      const response = await fetch(`/api/salah-times?masjidId=temp-masjid-id&date=${selectedDate}`)
+      const response = await fetch(`/api/salah-times?masjidId=${user.masjidId}&date=${selectedDate}`)
       const data = await response.json()
       
       if (data.success && data.salahTimes) {
@@ -82,7 +89,7 @@ export default function PrayerTimesManager() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          masjidId: 'temp-masjid-id', // This would be the actual mosque ID
+          masjidId: user?.masjidId,
           date: selectedDate,
           ...data,
           jumuahSlots: slots,

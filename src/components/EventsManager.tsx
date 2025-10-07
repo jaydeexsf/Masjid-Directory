@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Calendar, Plus, Edit, Trash2, Clock } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 const eventSchema = z.object({
   title: z.string().min(2, 'Event title is required'),
@@ -32,6 +33,7 @@ export default function EventsManager() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  const { user } = useAuth()
 
   const {
     register,
@@ -45,12 +47,17 @@ export default function EventsManager() {
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [user?.masjidId])
 
   const fetchEvents = async () => {
+    if (!user?.masjidId) {
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
-      const response = await fetch('/api/events?masjidId=temp-masjid-id&upcoming=true')
+      const response = await fetch(`/api/events?masjidId=${user.masjidId}&upcoming=true`)
       const data = await response.json()
       
       if (data.success) {
@@ -72,7 +79,7 @@ export default function EventsManager() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          masjidId: 'temp-masjid-id', // This would be the actual mosque ID
+          masjidId: user?.masjidId,
           ...data
         }),
       })

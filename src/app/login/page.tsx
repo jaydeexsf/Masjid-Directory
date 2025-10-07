@@ -1,13 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { login } = useAuth()
+  const router = useRouter()
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -33,22 +37,14 @@ export default function LoginPage() {
         throw new Error(data.error || 'Failed to sign in')
       }
 
-      // Store user data and token in localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('authUser', JSON.stringify(data.user))
-        localStorage.setItem('authRole', data.user.role)
-        localStorage.setItem('userId', data.user._id)
-        localStorage.setItem('authToken', data.token)
-        if (data.user.masjidId) {
-          localStorage.setItem('masjidId', data.user.masjidId)
-        }
-      }
+      // Use auth context to login
+      login(data.user, data.token)
 
       // Redirect based on role
       if (data.user.role === 'super_admin' || data.user.role === 'admin') {
-        window.location.href = '/admin'
+        router.push('/admin')
       } else {
-        window.location.href = '/admin'
+        router.push('/admin')
       }
 
     } catch (err: any) {

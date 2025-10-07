@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MapPin, Phone, Mail, Globe, User, Save, Upload } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 const mosqueSettingsSchema = z.object({
   name: z.string().min(2, 'Mosque name is required'),
@@ -30,6 +31,7 @@ export default function MosqueSettings() {
   const [mosque, setMosque] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { user } = useAuth()
 
   const {
     register,
@@ -87,7 +89,7 @@ export default function MosqueSettings() {
   const onSubmit = async (data: MosqueSettingsData) => {
     try {
       setSaving(true)
-      const response = await fetch('/api/mosques/temp-masjid-id', {
+      const response = await fetch(`/api/mosques/${user?.masjidId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
