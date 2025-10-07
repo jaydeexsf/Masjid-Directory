@@ -15,6 +15,7 @@ export default function LoginPage() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    console.log('Login form submitted')
     setSubmitting(true)
     setError(null)
 
@@ -22,7 +23,10 @@ export default function LoginPage() {
     const email = String(form.get('email') || '')
     const password = String(form.get('password') || '')
 
+    console.log('Login attempt:', { email, hasPassword: !!password })
+
     try {
+      console.log('Sending login request to API...')
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -31,25 +35,44 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       })
 
+      console.log('Login API response status:', response.status)
       const data = await response.json()
+      console.log('Login API response data:', { success: data.success, hasUser: !!data.user, hasToken: !!data.token })
 
       if (!data.success) {
+        console.error('Login failed:', data.error)
         throw new Error(data.error || 'Failed to sign in')
       }
 
+      console.log('Login successful! User details:', {
+        userId: data.user._id,
+        email: data.user.email,
+        role: data.user.role,
+        masjidId: data.user.masjidId
+      })
+
       // Use auth context to login
       login(data.user, data.token)
+      console.log('User logged in via auth context')
 
       // Redirect based on role
       if (data.user.role === 'super_admin' || data.user.role === 'admin') {
+        console.log('Redirecting to admin dashboard')
         router.push('/admin')
       } else {
+        console.log('Redirecting to admin dashboard (masjid_admin)')
         router.push('/admin')
       }
 
     } catch (err: any) {
+      console.error('Login error details:', {
+        error: err,
+        message: err?.message || 'Unknown error',
+        timestamp: new Date().toISOString()
+      })
       setError(err?.message || 'Failed to sign in')
     } finally {
+      console.log('Login process completed')
       setSubmitting(false)
     }
   }

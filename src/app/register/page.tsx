@@ -12,10 +12,22 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (formData: any) => {
+    console.log('Starting mosque registration process...')
+    console.log('Form data received:', {
+      mosqueName: formData.name,
+      city: formData.city,
+      state: formData.state,
+      country: formData.country,
+      adminEmail: formData.adminEmail,
+      adminName: formData.adminName,
+      hasLocation: !!(formData.latitude && formData.longitude)
+    })
+    
     setIsSubmitting(true)
     setError(null)
     
     try {
+      console.log('Sending registration request to API...')
       const response = await fetch('/api/mosques', {
         method: 'POST',
         headers: {
@@ -24,21 +36,32 @@ export default function RegisterPage() {
         body: JSON.stringify(formData),
       })
 
+      console.log('Registration API response status:', response.status)
       const data = await response.json()
+      console.log('Registration API response data:', data)
 
       if (data.success) {
+        console.log('Registration successful! Redirecting to success page...')
+        console.log('Created mosque ID:', data.mosque?._id)
+        console.log('Created user ID:', data.user?._id)
         router.push('/register/success')
       } else {
+        console.error('Registration failed:', data.error)
         throw new Error(data.error || 'Failed to register mosque')
       }
     } catch (error) {
-      console.error('Registration error:', error)
+      console.error('Registration error details:', {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      })
       const errorMessage = error instanceof Error ? error.message : 'Failed to register mosque. Please try again.'
       setError(errorMessage)
       
       // Scroll to top to show error
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
+      console.log('Registration process completed')
       setIsSubmitting(false)
     }
   }

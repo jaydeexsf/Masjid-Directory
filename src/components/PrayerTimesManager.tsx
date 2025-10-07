@@ -44,15 +44,21 @@ export default function PrayerTimesManager() {
   }, [selectedDate, user?.masjidId])
 
   const fetchPrayerTimes = async () => {
+    console.log('Fetching prayer times for mosque:', user?.masjidId, 'date:', selectedDate)
+    
     if (!user?.masjidId) {
+      console.log('No mosque ID available, skipping prayer times fetch')
       setLoading(false)
       return
     }
 
     try {
       setLoading(true)
+      console.log('Sending prayer times fetch request...')
       const response = await fetch(`/api/salah-times?masjidId=${user.masjidId}&date=${selectedDate}`)
       const data = await response.json()
+      
+      console.log('Prayer times API response:', { status: response.status, success: data.success, hasPrayerTimes: !!data.salahTimes })
       
       if (data.success && data.salahTimes) {
         setPrayerTimes(data.salahTimes)
@@ -81,8 +87,23 @@ export default function PrayerTimesManager() {
   }
 
   const onSubmit = async (data: PrayerTimesData) => {
+    console.log('Saving prayer times:', {
+      date: selectedDate,
+      masjidId: user?.masjidId,
+      prayerTimes: {
+        fajr: data.fajr,
+        dhuhr: data.dhuhr,
+        asr: data.asr,
+        maghrib: data.maghrib,
+        isha: data.isha,
+        jumuah: data.jumuah
+      },
+      jumuahSlots: slots.length
+    })
+    
     try {
       setSaving(true)
+      console.log('Sending prayer times save request...')
       const response = await fetch('/api/salah-times', {
         method: 'POST',
         headers: {
@@ -96,18 +117,23 @@ export default function PrayerTimesManager() {
         }),
       })
 
+      console.log('Prayer times save API response status:', response.status)
       const result = await response.json()
+      console.log('Prayer times save API response:', result)
       
       if (result.success) {
+        console.log('Prayer times saved successfully!')
         setPrayerTimes(result.salahTimes)
         alert('Prayer times saved successfully!')
       } else {
+        console.error('Prayer times save failed:', result.error)
         throw new Error(result.error || 'Failed to save prayer times')
       }
     } catch (error) {
       console.error('Error saving prayer times:', error)
       alert('Failed to save prayer times. Please try again.')
     } finally {
+      console.log('Prayer times save process completed')
       setSaving(false)
     }
   }

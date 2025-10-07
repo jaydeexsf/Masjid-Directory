@@ -50,18 +50,27 @@ export default function EventsManager() {
   }, [user?.masjidId])
 
   const fetchEvents = async () => {
+    console.log('Fetching events for mosque:', user?.masjidId)
+    
     if (!user?.masjidId) {
+      console.log('No mosque ID available, skipping events fetch')
       setLoading(false)
       return
     }
 
     try {
       setLoading(true)
+      console.log('Sending events fetch request...')
       const response = await fetch(`/api/events?masjidId=${user.masjidId}&upcoming=true`)
       const data = await response.json()
       
+      console.log('Events API response:', { status: response.status, success: data.success, count: data.events?.length || 0 })
+      
       if (data.success) {
         setEvents(data.events || [])
+        console.log('Events loaded successfully:', data.events?.length || 0, 'events')
+      } else {
+        console.error('Failed to fetch events:', data.error)
       }
     } catch (error) {
       console.error('Error fetching events:', error)
@@ -71,8 +80,16 @@ export default function EventsManager() {
   }
 
   const onSubmit = async (data: EventData) => {
+    console.log('Creating new event:', {
+      title: data.title,
+      date: data.date,
+      time: data.time,
+      masjidId: user?.masjidId
+    })
+    
     try {
       setSaving(true)
+      console.log('Sending event creation request...')
       const response = await fetch('/api/events', {
         method: 'POST',
         headers: {
@@ -84,20 +101,25 @@ export default function EventsManager() {
         }),
       })
 
+      console.log('Event creation API response status:', response.status)
       const result = await response.json()
+      console.log('Event creation API response:', result)
       
       if (result.success) {
+        console.log('Event created successfully! Event ID:', result.event?._id)
         await fetchEvents()
         reset()
         setEditingEvent(null)
         alert('Event saved successfully!')
       } else {
+        console.error('Event creation failed:', result.error)
         throw new Error(result.error || 'Failed to save event')
       }
     } catch (error) {
       console.error('Error saving event:', error)
       alert('Failed to save event. Please try again.')
     } finally {
+      console.log('Event creation process completed')
       setSaving(false)
     }
   }

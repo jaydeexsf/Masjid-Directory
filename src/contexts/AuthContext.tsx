@@ -26,29 +26,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check for stored authentication on mount
+    console.log('AuthContext: Checking for stored authentication...')
+    
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('authUser')
       const token = localStorage.getItem('authToken')
       
+      console.log('AuthContext: Found stored data:', {
+        hasUser: !!storedUser,
+        hasToken: !!token
+      })
+      
       if (storedUser && token) {
         try {
           const userData = JSON.parse(storedUser)
+          console.log('AuthContext: Restoring user session:', {
+            userId: userData._id,
+            email: userData.email,
+            role: userData.role
+          })
           setUser(userData)
         } catch (error) {
-          console.error('Error parsing stored user data:', error)
+          console.error('AuthContext: Error parsing stored user data:', error)
           // Clear invalid data
           localStorage.removeItem('authUser')
           localStorage.removeItem('authToken')
           localStorage.removeItem('authRole')
           localStorage.removeItem('userId')
           localStorage.removeItem('masjidId')
+          console.log('AuthContext: Cleared invalid stored data')
         }
+      } else {
+        console.log('AuthContext: No stored authentication found')
       }
     }
     setIsLoading(false)
   }, [])
 
   const login = (userData: User, token: string) => {
+    console.log('AuthContext: Logging in user:', {
+      userId: userData._id,
+      email: userData.email,
+      role: userData.role,
+      masjidId: userData.masjidId
+    })
+    
     setUser(userData)
     if (typeof window !== 'undefined') {
       localStorage.setItem('authUser', JSON.stringify(userData))
@@ -58,10 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userData.masjidId) {
         localStorage.setItem('masjidId', userData.masjidId)
       }
+      console.log('AuthContext: User data stored in localStorage')
     }
   }
 
   const logout = () => {
+    console.log('AuthContext: Logging out user')
     setUser(null)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('authUser')
@@ -69,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('authRole')
       localStorage.removeItem('userId')
       localStorage.removeItem('masjidId')
+      console.log('AuthContext: User data removed from localStorage')
     }
   }
 
