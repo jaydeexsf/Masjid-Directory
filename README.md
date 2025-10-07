@@ -208,8 +208,12 @@ masjid-directory/
 ### Vercel (Recommended)
 
 1. **Connect your repository to Vercel**
-2. **Set environment variables in Vercel dashboard**
+2. **Set environment variables in Vercel dashboard:**
+   - `MONGODB_URI`: Your MongoDB connection string (e.g., `mongodb+srv://username:password@cluster.mongodb.net/masjid-directory?retryWrites=true&w=majority`)
+   - `JWT_SECRET`: A secure random string for JWT token signing
 3. **Deploy automatically on push to main branch**
+
+**Important:** Make sure to set these environment variables in your Vercel project settings before deploying.
 
 ### Other Platforms
 
