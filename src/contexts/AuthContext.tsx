@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('authUser')
-      localStorage.setItem('authToken')
+      localStorage.removeItem('authToken')
       localStorage.removeItem('authRole')
       localStorage.removeItem('userId')
       localStorage.removeItem('masjidId')
