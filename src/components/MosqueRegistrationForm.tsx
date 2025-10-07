@@ -6,6 +6,21 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MapPin, User, Phone, Mail, Globe, Camera, Upload } from 'lucide-react'
 
+// Coerce and safely ignore out-of-range coordinates
+const latSchema = z.preprocess((v) => {
+  const n = typeof v === 'string' ? Number(v) : v
+  if (n === null || n === undefined || Number.isNaN(Number(n))) return undefined
+  if (Number(n) < -90 || Number(n) > 90) return undefined
+  return Number(n)
+}, z.number().optional())
+
+const lngSchema = z.preprocess((v) => {
+  const n = typeof v === 'string' ? Number(v) : v
+  if (n === null || n === undefined || Number.isNaN(Number(n))) return undefined
+  if (Number(n) < -180 || Number(n) > 180) return undefined
+  return Number(n)
+}, z.number().optional())
+
 const mosqueSchema = z.object({
   name: z.string().min(2, 'Masjid name must be at least 2 characters'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
@@ -13,9 +28,9 @@ const mosqueSchema = z.object({
   state: z.string().min(2, 'State is required'),
   country: z.string().min(2, 'Country is required'),
   postalCode: z.string().min(3, 'Postal code is required'),
-  // Make coordinates optional so step-3 submit doesn't silently fail when user didn't set location yet
-  latitude: z.number({ invalid_type_error: 'Latitude must be a number' }).min(-90).max(90).optional(),
-  longitude: z.number({ invalid_type_error: 'Longitude must be a number' }).min(-180).max(180).optional(),
+  // Coordinates optional; out-of-range values are ignored (treated as undefined)
+  latitude: latSchema,
+  longitude: lngSchema,
   contactInfo: z.object({
     phone: z.string().optional(),
     email: z.string().email().optional().or(z.literal('')),
@@ -114,19 +129,32 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
   }
 
   const onFormSubmit = (data: MosqueFormData) => {
+    // Sanitize coords on submit in case manual inputs were out of range
+    const sanitized = { ...data } as any
+    if (typeof sanitized.latitude === 'number' && (sanitized.latitude < -90 || sanitized.latitude > 90)) {
+      sanitized.latitude = undefined
+    }
+    if (typeof sanitized.longitude === 'number' && (sanitized.longitude < -180 || sanitized.longitude > 180)) {
+      sanitized.longitude = undefined
+    }
     console.log('MosqueRegistrationForm: submitting form data', {
-      name: data.name,
-      adminEmail: data.adminEmail,
-      hasCoords: !!(data.latitude && data.longitude),
+      name: sanitized.name,
+      adminEmail: sanitized.adminEmail,
+      hasCoords: !!(sanitized.latitude && sanitized.longitude),
     })
-    onSubmit(data)
+    onSubmit(sanitized)
+  }
+
+  const onFormError = (errors: any) => {
+    console.error('MosqueRegistrationForm: validation errors', errors)
+    // Optional: surface a generic error toast/alert without blocking
   }
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3))
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
   return (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(onFormSubmit, onFormError)} className="space-y-8">
       {/* Progress Indicator */}
       <div className="flex items-center justify-center space-x-4 mb-8">
         {[1, 2, 3].map((step) => (
