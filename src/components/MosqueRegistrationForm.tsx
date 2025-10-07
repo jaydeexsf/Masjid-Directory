@@ -13,8 +13,9 @@ const mosqueSchema = z.object({
   state: z.string().min(2, 'State is required'),
   country: z.string().min(2, 'Country is required'),
   postalCode: z.string().min(3, 'Postal code is required'),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  // Make coordinates optional so step-3 submit doesn't silently fail when user didn't set location yet
+  latitude: z.number({ invalid_type_error: 'Latitude must be a number' }).min(-90).max(90).optional(),
+  longitude: z.number({ invalid_type_error: 'Longitude must be a number' }).min(-180).max(180).optional(),
   contactInfo: z.object({
     phone: z.string().optional(),
     email: z.string().email().optional().or(z.literal('')),
@@ -113,6 +114,11 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
   }
 
   const onFormSubmit = (data: MosqueFormData) => {
+    console.log('MosqueRegistrationForm: submitting form data', {
+      name: data.name,
+      adminEmail: data.adminEmail,
+      hasCoords: !!(data.latitude && data.longitude),
+    })
     onSubmit(data)
   }
 
@@ -443,6 +449,27 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
             type="submit"
             disabled={isSubmitting}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
+            onClick={() => {
+              try {
+                const values = watch()
+                console.log('UI: Final Register Masjid button clicked', {
+                  step: currentStep,
+                  payloadPreview: {
+                    name: values?.name,
+                    city: values?.city,
+                    state: values?.state,
+                    country: values?.country,
+                    latitude: values?.latitude,
+                    longitude: values?.longitude,
+                    adminName: values?.adminName,
+                    adminEmail: values?.adminEmail,
+                    adminPassword: values?.adminPassword ? '***' : undefined,
+                  },
+                })
+              } catch (e) {
+                console.error('UI: Error logging final click payload', e)
+              }
+            }}
           >
             {isSubmitting ? (
               <>

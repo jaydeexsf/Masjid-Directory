@@ -12,15 +12,27 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (formData: any) => {
-    console.log('Starting mosque registration process...')
-    console.log('Form data received:', {
-      mosqueName: formData.name,
-      city: formData.city,
-      state: formData.state,
-      country: formData.country,
-      adminEmail: formData.adminEmail,
-      adminName: formData.adminName,
-      hasLocation: !!(formData.latitude && formData.longitude)
+    console.log('RegisterPage: handleSubmit called')
+    console.log('RegisterPage: payload to be sent (sanitized):', {
+      name: formData?.name,
+      address: formData?.address,
+      city: formData?.city,
+      state: formData?.state,
+      country: formData?.country,
+      postalCode: formData?.postalCode,
+      latitude: formData?.latitude,
+      longitude: formData?.longitude,
+      imam: formData?.imam?.name,
+      contactInfo: {
+        phone: formData?.contactInfo?.phone,
+        email: formData?.contactInfo?.email,
+        website: formData?.contactInfo?.website,
+      },
+      admin: {
+        adminName: formData?.adminName,
+        adminEmail: formData?.adminEmail,
+        adminPassword: formData?.adminPassword ? '***' : undefined,
+      }
     })
     
     setIsSubmitting(true)
@@ -36,9 +48,9 @@ export default function RegisterPage() {
         body: JSON.stringify(formData),
       })
 
-      console.log('Registration API response status:', response.status)
+      console.log('RegisterPage: fetch POST /api/mosques status', response.status)
       const data = await response.json()
-      console.log('Registration API response data:', data)
+      console.log('RegisterPage: fetch POST /api/mosques response body', data)
 
       if (data.success) {
         console.log('Registration successful! Redirecting to success page...')
