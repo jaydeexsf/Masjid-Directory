@@ -5,9 +5,14 @@ import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[API] POST /api/auth/register - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
     
     if (!db) {
+      console.log('[API] POST /api/auth/register - DB unavailable')
       return NextResponse.json(
         { success: false, error: 'Database unavailable' },
         { status: 503 }
@@ -16,6 +21,13 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { email, name, password, role, masjidId } = body
+    console.log('[API] POST /api/auth/register - payload received (summary)', {
+      email,
+      name,
+      hasPassword: !!password,
+      role,
+      hasMasjidId: !!masjidId,
+    })
 
     // Validate required fields
     if (!email || !name || !password) {
@@ -28,6 +40,7 @@ export async function POST(request: NextRequest) {
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() })
     if (existingUser) {
+      console.log('[API] POST /api/auth/register - user exists', { email })
       return NextResponse.json(
         { success: false, error: 'User with this email already exists' },
         { status: 409 }
@@ -47,6 +60,7 @@ export async function POST(request: NextRequest) {
     })
 
     await user.save()
+    console.log('[API] POST /api/auth/register - user created', { userId: user._id })
 
     // Return user without password
     const userResponse = {
@@ -57,11 +71,13 @@ export async function POST(request: NextRequest) {
       masjidId: user.masjidId,
     }
 
-    return NextResponse.json({
+    const responsePayload = {
       success: true,
       user: userResponse,
       message: 'User registered successfully',
-    })
+    }
+    console.log('[API] POST /api/auth/register - success response', responsePayload)
+    return NextResponse.json(responsePayload)
 
   } catch (error) {
     console.error('Error registering user:', error)

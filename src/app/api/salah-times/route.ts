@@ -18,6 +18,10 @@ const SALAH_FALLBACK = {
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[API] GET /api/salah-times - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
 
     const { searchParams } = new URL(request.url)
@@ -35,7 +39,9 @@ export async function GET(request: NextRequest) {
     queryDate.setHours(0, 0, 0, 0)
 
     if (!db) {
+      console.log('[API] GET /api/salah-times - DB not available, using fallback')
       const data = { ...SALAH_FALLBACK, masjidId, date: queryDate }
+      console.log('[API] GET /api/salah-times - returning fallback response')
       return NextResponse.json({ success: true, salahTimes: data, fallback: true })
     }
 
@@ -51,6 +57,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    console.log('[API] GET /api/salah-times - success response', { hasSalahTimes: !!salahTimes })
     return NextResponse.json({
       success: true,
       salahTimes
@@ -67,9 +74,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[API] POST /api/salah-times - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
 
     if (!db) {
+      console.log('[API] POST /api/salah-times - DB unavailable')
       return NextResponse.json(
         { success: false, error: 'Database unavailable in demo mode' },
         { status: 503 }
@@ -88,6 +100,13 @@ export async function POST(request: NextRequest) {
       jumuah,
       jumuahSlots,
     } = body
+
+    console.log('[API] POST /api/salah-times - payload received (summary)', {
+      masjidId,
+      date,
+      hasJumuah: !!jumuah,
+      jumuahSlotsCount: Array.isArray(jumuahSlots) ? jumuahSlots.length : 0,
+    })
 
     // Validate required fields
     if (!masjidId || !date || !fajr || !dhuhr || !asr || !maghrib || !isha) {
@@ -115,14 +134,19 @@ export async function POST(request: NextRequest) {
 
       await existingTimes.save()
 
-      return NextResponse.json({ success: true, salahTimes: existingTimes, message: 'Prayer times updated successfully' })
+      const responsePayloadUpdate = { success: true, salahTimes: existingTimes, message: 'Prayer times updated successfully' }
+      console.log('[API] POST /api/salah-times - update success response', responsePayloadUpdate)
+      return NextResponse.json(responsePayloadUpdate)
     } else {
       // Create new prayer times
       const salahTimes = new SalahTimes({ masjidId, date: queryDate, fajr, dhuhr, asr, maghrib, isha, jumuah, jumuahSlots })
 
       await salahTimes.save()
+      console.log('[API] POST /api/salah-times - created salah times', { id: salahTimes._id })
 
-      return NextResponse.json({ success: true, salahTimes, message: 'Prayer times created successfully' })
+      const responsePayloadCreate = { success: true, salahTimes, message: 'Prayer times created successfully' }
+      console.log('[API] POST /api/salah-times - create success response', responsePayloadCreate)
+      return NextResponse.json(responsePayloadCreate)
     }
 
   } catch (error) {

@@ -43,6 +43,10 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    console.log('[API] GET /api/mosques/:id - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
 
     if (!db) {
@@ -50,6 +54,7 @@ export async function GET(
     }
 
     const { id } = await context.params
+    console.log('[API] GET /api/mosques/:id - params', { id })
     const mosque = await Mosque.findById(id)
     if (!mosque) {
       return NextResponse.json(
@@ -73,6 +78,10 @@ export async function GET(
       date: { $gte: today }
     }).sort({ date: 1 }).limit(5)
 
+    console.log('[API] GET /api/mosques/:id - success response', {
+      hasSalahTimes: !!salahTimes,
+      eventsCount: upcomingEvents.length,
+    })
     return NextResponse.json({
       success: true,
       mosque,
@@ -94,6 +103,10 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    console.log('[API] PUT /api/mosques/:id - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
     if (!db) {
       return NextResponse.json({ success: false, error: 'Database unavailable in demo mode' }, { status: 503 })
@@ -105,6 +118,7 @@ export async function PUT(
     delete updateData.createdAt
 
     const { id } = await context.params
+    console.log('[API] PUT /api/mosques/:id - params and payload', { id, keys: Object.keys(updateData) })
     const mosque = await Mosque.findByIdAndUpdate(
       id,
       updateData,
@@ -118,11 +132,13 @@ export async function PUT(
       )
     }
 
-    return NextResponse.json({
+    const responsePayload = {
       success: true,
       mosque,
       message: 'Mosque updated successfully'
-    })
+    }
+    console.log('[API] PUT /api/mosques/:id - success response', responsePayload)
+    return NextResponse.json(responsePayload)
 
   } catch (error) {
     console.error('Error updating mosque:', error)

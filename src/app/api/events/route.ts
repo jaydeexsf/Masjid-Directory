@@ -9,6 +9,10 @@ const EVENTS_FALLBACK = [
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[API] GET /api/events - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
 
     const { searchParams } = new URL(request.url)
@@ -17,7 +21,9 @@ export async function GET(request: NextRequest) {
     const upcoming = searchParams.get('upcoming') === 'true'
 
     if (!db) {
+      console.log('[API] GET /api/events - DB not available, using fallback')
       const filtered = EVENTS_FALLBACK.filter((e) => (masjidId ? e.masjidId === masjidId : true)).slice(0, limit)
+      console.log('[API] GET /api/events - returning fallback results', { count: filtered.length })
       return NextResponse.json({ success: true, events: filtered, count: filtered.length, fallback: true })
     }
 
@@ -36,6 +42,7 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .populate('masjidId', 'name address city')
 
+    console.log('[API] GET /api/events - success', { count: events.length })
     return NextResponse.json({
       success: true,
       events,
@@ -53,8 +60,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[API] POST /api/events - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
     if (!db) {
+      console.log('[API] POST /api/events - DB unavailable')
       return NextResponse.json({ success: false, error: 'Database unavailable in demo mode' }, { status: 503 })
     }
 
@@ -69,6 +81,15 @@ export async function POST(request: NextRequest) {
       isRecurring,
       recurringPattern
     } = body
+
+    console.log('[API] POST /api/events - payload received (summary)', {
+      masjidId,
+      title,
+      date,
+      time,
+      isRecurring: !!isRecurring,
+      hasImage: !!image,
+    })
 
     // Validate required fields
     if (!masjidId || !title || !description || !date || !time) {
@@ -90,12 +111,15 @@ export async function POST(request: NextRequest) {
     })
 
     await event.save()
+    console.log('[API] POST /api/events - event created', { eventId: event._id })
 
-    return NextResponse.json({
+    const responsePayload = {
       success: true,
       event,
       message: 'Event created successfully'
-    })
+    }
+    console.log('[API] POST /api/events - success response', responsePayload)
+    return NextResponse.json(responsePayload)
 
   } catch (error) {
     console.error('Error creating event:', error)

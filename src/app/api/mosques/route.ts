@@ -45,6 +45,10 @@ const MOSQUE_FALLBACK = [
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[API] GET /api/mosques - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
 
     const { searchParams } = new URL(request.url)
@@ -52,11 +56,15 @@ export async function GET(request: NextRequest) {
     const city = searchParams.get('city')
 
     if (!db) {
+      console.log('[API] GET /api/mosques - DB not available, using fallback')
       // Filter fallback results in-memory for a realistic UI
       const filtered = MOSQUE_FALLBACK.filter((m) => {
         const nameMatch = name ? (m.name.toLowerCase().includes(name.toLowerCase()) || m.address.toLowerCase().includes(name.toLowerCase())) : true
         const cityMatch = city ? m.city.toLowerCase().includes(city.toLowerCase()) : true
         return nameMatch && cityMatch
+      })
+      console.log('[API] GET /api/mosques - returning fallback results', {
+        count: filtered.length,
       })
       return NextResponse.json({ success: true, mosques: filtered, count: filtered.length, fallback: true })
     }
@@ -81,6 +89,9 @@ export async function GET(request: NextRequest) {
       .sort({ name: 1 })
       .limit(50)
 
+    console.log('[API] GET /api/mosques - success', {
+      count: mosques.length,
+    })
     return NextResponse.json({ 
       success: true, 
       mosques,
@@ -98,8 +109,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[API] POST /api/mosques - incoming request', {
+      url: request.url,
+      ts: new Date().toISOString(),
+    })
     const db = await connectDBSafe()
     if (!db) {
+      console.log('[API] POST /api/mosques - DB unavailable')
       return NextResponse.json(
         { success: false, error: 'Database unavailable in demo mode' },
         { status: 503 }
@@ -123,8 +139,19 @@ export async function POST(request: NextRequest) {
       adminPassword
     } = body
 
+    console.log('[API] POST /api/mosques - payload received (summary)', {
+      name,
+      city,
+      state,
+      country,
+      adminEmail,
+      hasPassword: !!adminPassword,
+      hasCoords: !!latitude && !!longitude,
+    })
+
     // Validate required fields
     if (!name || !address || !city || !state || !country || !adminName || !adminEmail || !adminPassword) {
+      console.log('[API] POST /api/mosques - missing required fields')
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -134,6 +161,7 @@ export async function POST(request: NextRequest) {
     // Check if user already exists
     const existingUser = await User.findOne({ email: adminEmail.toLowerCase() })
     if (existingUser) {
+      console.log('[API] POST /api/mosques - user exists', { adminEmail })
       return NextResponse.json(
         { success: false, error: 'A user with this email already exists' },
         { status: 409 }
@@ -152,6 +180,7 @@ export async function POST(request: NextRequest) {
     })
 
     await user.save()
+    console.log('[API] POST /api/mosques - user created', { userId: user._id })
 
     // Create new mosque with the user's ID
     const mosque = new Mosque({
@@ -171,10 +200,12 @@ export async function POST(request: NextRequest) {
     })
 
     await mosque.save()
+    console.log('[API] POST /api/mosques - mosque created', { mosqueId: mosque._id })
 
     // Update user with masjid ID
     user.masjidId = mosque._id.toString()
     await user.save()
+    console.log('[API] POST /api/mosques - user updated with masjidId', { userId: user._id, masjidId: user.masjidId })
 
     return NextResponse.json({ 
       success: true, 
