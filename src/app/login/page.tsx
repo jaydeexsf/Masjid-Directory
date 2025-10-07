@@ -19,39 +19,38 @@ export default function LoginPage() {
     const password = String(form.get('password') || '')
 
     try {
-      // Dev-only placeholder auth. Accepts any password.
-      await new Promise((r) => setTimeout(r, 500))
-      if (!email) throw new Error('Enter username: admin or user')
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
 
-      const username = email.trim().toLowerCase()
-      if (username === 'superadmin') {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('authUser', 'superadmin')
-          localStorage.setItem('authRole', 'super_admin')
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to sign in')
+      }
+
+      // Store user data and token in localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('authUser', JSON.stringify(data.user))
+        localStorage.setItem('authRole', data.user.role)
+        localStorage.setItem('userId', data.user._id)
+        localStorage.setItem('authToken', data.token)
+        if (data.user.masjidId) {
+          localStorage.setItem('masjidId', data.user.masjidId)
         }
+      }
+
+      // Redirect based on role
+      if (data.user.role === 'super_admin' || data.user.role === 'admin') {
         window.location.href = '/admin'
-        return
-      }
-
-      if (username === 'admin') {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('authUser', 'admin')
-          localStorage.setItem('authRole', 'admin')
-        }
+      } else {
         window.location.href = '/admin'
-        return
       }
 
-      if (username === 'user') {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('authUser', 'user')
-          localStorage.setItem('authRole', 'masjid_admin')
-        }
-        window.location.href = '/'
-        return
-      }
-
-      throw new Error('Use username "superadmin", "admin" or "user" (any password)')
     } catch (err: any) {
       setError(err?.message || 'Failed to sign in')
     } finally {
@@ -70,8 +69,8 @@ export default function LoginPage() {
 
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                <input name="email" type="text" required placeholder="admin or user" className="input-field" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input name="email" type="email" required placeholder="your@email.com" className="input-field" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>

@@ -26,7 +26,12 @@ const mosqueSchema = z.object({
   }),
   adminName: z.string().min(2, 'Admin name is required'),
   adminEmail: z.string().email('Valid email is required'),
-  adminPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  adminPassword: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
 })
 
 type MosqueFormData = z.infer<typeof mosqueSchema>
@@ -71,10 +76,7 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
   }
 
   const onFormSubmit = (data: MosqueFormData) => {
-    onSubmit({
-      ...data,
-      adminId: 'temp-admin-id', // This would be replaced with actual user ID after auth
-    })
+    onSubmit(data)
   }
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3))
@@ -356,6 +358,16 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
             {errors.adminPassword && (
               <p className="text-red-600 text-sm mt-1">{errors.adminPassword.message}</p>
             )}
+            <div className="mt-2 text-sm text-gray-600">
+              <p>Password requirements:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>At least 8 characters</li>
+                <li>One uppercase letter</li>
+                <li>One lowercase letter</li>
+                <li>One number</li>
+                <li>One special character</li>
+              </ul>
+            </div>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">

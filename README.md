@@ -60,13 +60,24 @@ The application uses a carefully selected color palette inspired by Islamic desi
 3. **Set up environment variables**
    Create a `.env.local` file in the root directory:
    ```env
+   # MongoDB Connection String
    MONGODB_URI=mongodb://localhost:27017/masjid-directory
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-secret-key-here
-   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
-   CLOUDINARY_API_KEY=your-api-key
-   CLOUDINARY_API_SECRET=your-api-secret
-   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+   # For production, use MongoDB Atlas:
+   # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/masjid-directory?retryWrites=true&w=majority
+   
+   # JWT Secret for session management
+   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+   
+   # Next.js Environment
+   NODE_ENV=development
+   
+   # Optional: Cloudinary for image uploads (planned)
+   # NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
+   # CLOUDINARY_API_KEY=your-api-key
+   # CLOUDINARY_API_SECRET=your-api-secret
+   
+   # Optional: Google Maps API (planned)
+   # NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
    ```
 
 4. **Start the development server**
@@ -98,9 +109,13 @@ masjid-directory/
 
 ## API Endpoints
 
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+
 ### Mosques
 - `GET /api/mosques` - Search mosques
-- `POST /api/mosques` - Register new mosque
+- `POST /api/mosques` - Register new mosque (creates user account)
 - `GET /api/mosques/[id]` - Get mosque details
 - `PUT /api/mosques/[id]` - Update mosque information
 
@@ -111,6 +126,9 @@ masjid-directory/
 ### Events
 - `GET /api/events` - Get mosque events
 - `POST /api/events` - Create new event
+
+### Database Testing
+- `GET /api/test-db` - Test database connection
 
 ## Database Schema
 
@@ -174,10 +192,13 @@ masjid-directory/
 - ✅ **Database Models**: MongoDB schemas for all entities
 - ✅ **UI Components**: Responsive design with custom color scheme
 - ✅ **Search Functionality**: Mosque search and filtering
-- ✅ **Mosque Registration**: Multi-step registration form
+- ✅ **Mosque Registration**: Multi-step registration form with user account creation
 - ✅ **Admin Dashboard**: Prayer times and events management
 - ✅ **API Routes**: Complete backend API implementation
-- 🔄 **Authentication**: NextAuth.js integration (in progress)
+- ✅ **Authentication**: JWT-based authentication system
+- ✅ **User Management**: Secure user registration and login
+- ✅ **Password Security**: Strong password validation and bcrypt hashing
+- ✅ **Session Management**: JWT tokens with middleware protection
 - 🔄 **Image Upload**: Cloudinary integration (planned)
 - 🔄 **Maps Integration**: Google Maps API (planned)
 - 🔄 **SEO Optimization**: Meta tags and structured data (planned)

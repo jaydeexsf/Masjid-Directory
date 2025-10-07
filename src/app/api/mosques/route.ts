@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDBSafe } from '@/lib/mongodb'
 import Mosque from '@/models/Mosque'
+import User from '@/models/User'
+import bcrypt from 'bcryptjs'
 
 const MOSQUE_FALLBACK = [
   {
@@ -116,18 +118,42 @@ export async function POST(request: NextRequest) {
       longitude,
       contactInfo,
       imam,
-      adminId
+      adminName,
+      adminEmail,
+      adminPassword
     } = body
 
     // Validate required fields
-    if (!name || !address || !city || !state || !country || !adminId) {
+    if (!name || !address || !city || !state || !country || !adminName || !adminEmail || !adminPassword) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    // Create new mosque
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: adminEmail.toLowerCase() })
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, error: 'A user with this email already exists' },
+        { status: 409 }
+      )
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(adminPassword, 10)
+
+    // Create new user first
+    const user = new User({
+      email: adminEmail.toLowerCase(),
+      name: adminName,
+      password: hashedPassword,
+      role: 'masjid_admin',
+    })
+
+    await user.save()
+
+    // Create new mosque with the user's ID
     const mosque = new Mosque({
       name,
       address,
@@ -141,14 +167,24 @@ export async function POST(request: NextRequest) {
       imam: imam || { name: '' },
       images: [],
       isApproved: false,
-      adminId
+      adminId: user._id.toString()
     })
 
     await mosque.save()
 
+    // Update user with masjid ID
+    user.masjidId = mosque._id.toString()
+    await user.save()
+
     return NextResponse.json({ 
       success: true, 
       mosque,
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
       message: 'Mosque registered successfully. Awaiting approval.' 
     })
 
