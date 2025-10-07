@@ -56,22 +56,59 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
   })
 
   const getCurrentLocation = () => {
+    console.log('Getting current location...')
+    
     if (navigator.geolocation) {
+      console.log('Geolocation API is available')
+      
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude
           const lng = position.coords.longitude
+          console.log('Location obtained successfully:', { lat, lng })
           setLocation({ lat, lng })
           setValue('latitude', lat)
           setValue('longitude', lng)
         },
         (error) => {
-          console.error('Error getting location:', error)
-          alert('Unable to get your location. Please enter coordinates manually.')
+          console.error('Geolocation error details:', {
+            code: error.code,
+            message: error.message,
+            timestamp: new Date().toISOString()
+          })
+          
+          let errorMessage = 'Unable to get your location. '
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += 'Location access was denied. Please enable location permissions and try again.'
+              console.log('User denied location permission')
+              break
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += 'Location information is unavailable. Please check your device settings.'
+              console.log('Location information unavailable')
+              break
+            case error.TIMEOUT:
+              errorMessage += 'Location request timed out. Please try again.'
+              console.log('Location request timed out')
+              break
+            default:
+              errorMessage += 'An unknown error occurred. Please enter coordinates manually.'
+              console.log('Unknown geolocation error')
+              break
+          }
+          
+          alert(errorMessage)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
         }
       )
     } else {
-      alert('Geolocation is not supported by this browser.')
+      console.error('Geolocation is not supported by this browser')
+      alert('Geolocation is not supported by this browser. Please enter coordinates manually.')
     }
   }
 
