@@ -72,7 +72,7 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
     setValue,
     watch
   } = useForm<MosqueFormData>({
-    resolver: zodResolver(mosqueSchema)
+    resolver: zodResolver<MosqueFormData>(mosqueSchema)
   })
 
   const getCurrentLocation = () => {
