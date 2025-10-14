@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { MapPin, User, Phone, Mail, Globe, Camera, Upload } from 'lucide-react'
@@ -72,7 +72,7 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
     setValue,
     watch
   } = useForm<MosqueFormData>({
-    resolver: zodResolver<MosqueFormData>(mosqueSchema)
+    resolver: zodResolver(mosqueSchema) as unknown as Resolver<MosqueFormData>
   })
 
   const getCurrentLocation = () => {
