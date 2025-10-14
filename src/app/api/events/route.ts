@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDBSafe } from '@/lib/mongodb'
 import Event from '@/models/Event'
 
-const EVENTS_FALLBACK = [
-  { _id: 'e1', masjidId: 'demo-1', title: 'Community Halaqa', description: 'Weekly halaqa after Maghrib', date: new Date(), time: '19:30', isRecurring: true },
-  { _id: 'e2', masjidId: 'demo-1', title: 'Youth Night', description: 'Games and reminders', date: new Date(Date.now() + 86400000), time: '18:00', isRecurring: false },
-]
-
 export async function GET(request: NextRequest) {
   try {
     console.log('[API] GET /api/events - incoming request', {
@@ -21,10 +16,8 @@ export async function GET(request: NextRequest) {
     const upcoming = searchParams.get('upcoming') === 'true'
 
     if (!db) {
-      console.log('[API] GET /api/events - DB not available, using fallback')
-      const filtered = EVENTS_FALLBACK.filter((e) => (masjidId ? e.masjidId === masjidId : true)).slice(0, limit)
-      console.log('[API] GET /api/events - returning fallback results', { count: filtered.length })
-      return NextResponse.json({ success: true, events: filtered, count: filtered.length, fallback: true })
+      console.log('[API] GET /api/events - DB not available')
+      return NextResponse.json({ success: false, error: 'Database unavailable' }, { status: 503 })
     }
 
     const query: any = {}
@@ -52,8 +45,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching events:', error)
     return NextResponse.json(
-      { success: true, events: EVENTS_FALLBACK, count: EVENTS_FALLBACK.length, fallback: true },
-      { status: 200 }
+      { success: false, error: 'Failed to fetch events' },
+      { status: 500 }
     )
   }
 }

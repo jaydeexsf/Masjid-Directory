@@ -49,36 +49,28 @@ export default function MosqueSettings() {
   const fetchMosqueData = async () => {
     try {
       setLoading(true)
-      // This would fetch the actual mosque data
-      const mockData = {
-        name: 'Masjid Al-Noor',
-        address: '123 Main Street',
-        city: 'New York',
-        state: 'NY',
-        country: 'USA',
-        postalCode: '10001',
-        contactInfo: {
-          phone: '+1 (555) 123-4567',
-          email: 'info@masjidalnoor.com',
-          website: 'https://masjidalnoor.com'
-        },
-        imam: {
-          name: 'Imam Abdullah',
-          photo: ''
-        }
+      if (!user?.masjidId) {
+        throw new Error('Missing masjidId for current user')
       }
-      
-      setMosque(mockData)
-      setValue('name', mockData.name)
-      setValue('address', mockData.address)
-      setValue('city', mockData.city)
-      setValue('state', mockData.state)
-      setValue('country', mockData.country)
-      setValue('postalCode', mockData.postalCode)
-      setValue('contactInfo.phone', mockData.contactInfo.phone)
-      setValue('contactInfo.email', mockData.contactInfo.email)
-      setValue('contactInfo.website', mockData.contactInfo.website)
-      setValue('imam.name', mockData.imam.name)
+
+      const response = await fetch(`/api/mosques/${user.masjidId}`)
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load mosque data')
+      }
+
+      const data = result.mosque
+      setMosque(data)
+      setValue('name', data.name || '')
+      setValue('address', data.address || '')
+      setValue('city', data.city || '')
+      setValue('state', data.state || '')
+      setValue('country', data.country || '')
+      setValue('postalCode', data.postalCode || '')
+      setValue('contactInfo.phone', data.contactInfo?.phone || '')
+      setValue('contactInfo.email', data.contactInfo?.email || '')
+      setValue('contactInfo.website', data.contactInfo?.website || '')
+      setValue('imam.name', data.imam?.name || '')
     } catch (error) {
       console.error('Error fetching mosque data:', error)
     } finally {

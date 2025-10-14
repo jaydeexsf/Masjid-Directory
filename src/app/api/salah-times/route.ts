@@ -2,20 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDBSafe } from '@/lib/mongodb'
 import SalahTimes from '@/models/SalahTimes'
 
-const SALAH_FALLBACK = {
-  masjidId: 'demo-1',
-  date: new Date(new Date().setHours(0,0,0,0)),
-  fajr: '05:30',
-  dhuhr: '13:30',
-  asr: '17:00',
-  maghrib: 'Sunset + 15 min',
-  isha: '20:30',
-  jumuah: '13:30',
-  jumuahSlots: [
-    { khutbah: '13:15', iqamah: '13:30' }
-  ],
-}
-
 export async function GET(request: NextRequest) {
   try {
     console.log('[API] GET /api/salah-times - incoming request', {
@@ -39,10 +25,8 @@ export async function GET(request: NextRequest) {
     queryDate.setHours(0, 0, 0, 0)
 
     if (!db) {
-      console.log('[API] GET /api/salah-times - DB not available, using fallback')
-      const data = { ...SALAH_FALLBACK, masjidId, date: queryDate }
-      console.log('[API] GET /api/salah-times - returning fallback response')
-      return NextResponse.json({ success: true, salahTimes: data, fallback: true })
+      console.log('[API] GET /api/salah-times - DB not available')
+      return NextResponse.json({ success: false, error: 'Database unavailable' }, { status: 503 })
     }
 
     const salahTimes = await SalahTimes.findOne({
@@ -66,8 +50,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching prayer times:', error)
     return NextResponse.json(
-      { success: true, salahTimes: SALAH_FALLBACK, fallback: true },
-      { status: 200 }
+      { success: false, error: 'Failed to fetch prayer times' },
+      { status: 500 }
     )
   }
 }
