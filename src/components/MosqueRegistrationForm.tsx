@@ -7,19 +7,23 @@ import { z } from 'zod'
 import { MapPin, User, Phone, Mail, Globe, Camera, Upload } from 'lucide-react'
 
 // Coerce and safely ignore out-of-range coordinates
-const latSchema = z.preprocess((v) => {
-  const n = typeof v === 'string' ? Number(v) : v
-  if (n === null || n === undefined || Number.isNaN(Number(n))) return undefined
-  if (Number(n) < -90 || Number(n) > 90) return undefined
-  return Number(n)
-}, z.number().optional())
+const latSchema = z
+  .preprocess((v) => {
+    const n = typeof v === 'string' ? Number(v) : v
+    if (n === null || n === undefined || Number.isNaN(Number(n))) return undefined
+    if (Number(n) < -90 || Number(n) > 90) return undefined
+    return Number(n)
+  }, z.number())
+  .optional()
 
-const lngSchema = z.preprocess((v) => {
-  const n = typeof v === 'string' ? Number(v) : v
-  if (n === null || n === undefined || Number.isNaN(Number(n))) return undefined
-  if (Number(n) < -180 || Number(n) > 180) return undefined
-  return Number(n)
-}, z.number().optional())
+const lngSchema = z
+  .preprocess((v) => {
+    const n = typeof v === 'string' ? Number(v) : v
+    if (n === null || n === undefined || Number.isNaN(Number(n))) return undefined
+    if (Number(n) < -180 || Number(n) > 180) return undefined
+    return Number(n)
+  }, z.number())
+  .optional()
 
 const mosqueSchema = z.object({
   name: z.string().min(2, 'Masjid name must be at least 2 characters'),

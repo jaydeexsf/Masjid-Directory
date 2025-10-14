@@ -183,6 +183,9 @@ export async function POST(request: NextRequest) {
     console.log('[API] POST /api/mosques - user created', { userId: user._id })
 
     // Create new mosque with the user's ID
+    const safeLatitude = typeof latitude === 'number' ? latitude : parseFloat(latitude)
+    const safeLongitude = typeof longitude === 'number' ? longitude : parseFloat(longitude)
+
     const mosque = new Mosque({
       name,
       address,
@@ -190,8 +193,8 @@ export async function POST(request: NextRequest) {
       state,
       country,
       postalCode,
-      latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude),
+      latitude: Number.isFinite(safeLatitude) ? safeLatitude : undefined,
+      longitude: Number.isFinite(safeLongitude) ? safeLongitude : undefined,
       contactInfo: contactInfo || {},
       imam: imam || { name: '' },
       images: [],

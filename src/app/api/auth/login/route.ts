@@ -77,11 +77,24 @@ export async function POST(request: NextRequest) {
       token,
       message: 'Login successful',
     }
+
+    // Create response and set secure httpOnly cookie for server-side auth (middleware)
+    const res = NextResponse.json(responsePayload)
+    const isProd = process.env.NODE_ENV === 'production'
+    res.cookies.set('authToken', token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    })
+
     console.log('[API] POST /api/auth/login - success response', {
       userId: user._id,
       hasToken: !!token,
+      cookieSet: true,
     })
-    return NextResponse.json(responsePayload)
+    return res
 
   } catch (error) {
     console.error('Error logging in:', error)

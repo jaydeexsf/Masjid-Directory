@@ -108,7 +108,7 @@ export default function LoginPage() {
             </form>
 
             <p className="text-sm text-gray-600 mt-6 text-center">
-              Don t have an account? <Link href="/register" className="text-primary-600">Register your masjid</Link>
+              Don’t have an account? <Link href="/register" className="text-primary-600">Register your masjid</Link>
             </p>
           </div>
         </div>

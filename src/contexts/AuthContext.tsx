@@ -84,8 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
     console.log('AuthContext: Logging out user')
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch (e) {
+      console.error('AuthContext: logout API error', e)
+    }
     setUser(null)
     if (typeof window !== 'undefined') {
       localStorage.removeItem('authUser')

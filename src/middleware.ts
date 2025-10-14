@@ -4,7 +4,10 @@ import { verifyToken, extractTokenFromRequest } from './lib/jwt';
 export function middleware(request: NextRequest) {
   // Only protect admin routes
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    const token = extractTokenFromRequest(request);
+    // Prefer cookie for server-protected routes; fallback to Authorization header
+    const cookieToken = request.cookies.get('authToken')?.value;
+    const headerToken = extractTokenFromRequest(request);
+    const token = cookieToken || headerToken;
     
     if (!token) {
       // Redirect to login if no token
