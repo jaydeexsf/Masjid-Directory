@@ -1,17 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { logDebugInfo, testApiEndpoint } from '@/lib/debug'
 
 export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<any>(null)
   const { login } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    // Run comprehensive debugging on page load
+    const debug = logDebugInfo('Login Page Loaded');
+    setDebugInfo(debug);
+    
+    // Test database connectivity
+    testApiEndpoint('/api/test-db');
+  }, [])
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -26,6 +37,9 @@ export default function LoginPage() {
     console.log('Login attempt:', { email, hasPassword: !!password })
 
     try {
+      // Enhanced debugging before API call
+      logDebugInfo('Login Attempt Started', { email, hasPassword: !!password });
+      
       console.log('Sending login request to API...')
       const start = performance.now()
       const response = await fetch('/api/auth/login', {
@@ -43,9 +57,29 @@ export default function LoginPage() {
         statusText: response.statusText,
         durationMs,
         requestId: response.headers.get('x-request-id') || response.headers.get('x-vercel-id') || null,
+        headers: Object.fromEntries(response.headers.entries()),
       })
+      
       const data = await response.json()
-      console.log('Login API response summary:', { success: data.success, hasUser: !!data.user, hasToken: !!data.token, message: data?.message, error: data?.error || null })
+      console.log('Login API response summary:', { 
+        success: data.success, 
+        hasUser: !!data.user, 
+        hasToken: !!data.token, 
+        message: data?.message, 
+        error: data?.error || null,
+        fullResponse: data
+      })
+      
+      // Enhanced error logging
+      if (!response.ok) {
+        console.error('🚨 [LOGIN ERROR] HTTP Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          responseData: data,
+          url: response.url,
+          headers: Object.fromEntries(response.headers.entries()),
+        });
+      }
 
       if (!data.success) {
         console.error('Login failed:', data.error)
@@ -116,9 +150,31 @@ export default function LoginPage() {
             </form>
 
             <p className="text-sm text-gray-600 mt-6 text-center">
-              Don’t have an account? <Link href="/register" className="text-primary-600">Register your masjid</Link>
+              Don't have an account? <Link href="/register" className="text-primary-600">Register your masjid</Link>
             </p>
           </div>
+          
+          {/* Debug Panel - Only show in development */}
+          {debugInfo && process.env.NODE_ENV === 'development' && (
+            <div className="mt-8 bg-gray-100 rounded-lg p-4 text-xs">
+              <h3 className="font-bold mb-2">🔍 Debug Information</h3>
+              <div className="space-y-2">
+                <div><strong>Environment:</strong> {debugInfo.environment.nodeEnv || 'undefined'}</div>
+                <div><strong>Vercel Env:</strong> {debugInfo.environment.vercelEnv || 'undefined'}</div>
+                <div><strong>Region:</strong> {debugInfo.environment.vercelRegion || 'undefined'}</div>
+                <div><strong>Hostname:</strong> {debugInfo.environment.hostname || 'undefined'}</div>
+                <div><strong>API Base:</strong> {debugInfo.api.baseUrl}</div>
+                <div><strong>Has Auth User:</strong> {debugInfo.localStorage.hasAuthUser ? 'Yes' : 'No'}</div>
+                <div><strong>Has Auth Token:</strong> {debugInfo.localStorage.hasAuthToken ? 'Yes' : 'No'}</div>
+              </div>
+              <button 
+                onClick={() => testApiEndpoint('/api/test-db')}
+                className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs"
+              >
+                Test DB Connection
+              </button>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

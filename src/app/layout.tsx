@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import DebugPanel from '@/components/DebugPanel'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -72,6 +73,7 @@ export default function RootLayout({
           <div className="min-h-screen bg-gradient-primary">
             {children}
           </div>
+          <DebugPanel />
         </AuthProvider>
       </body>
     </html>
