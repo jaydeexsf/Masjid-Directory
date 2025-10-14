@@ -27,6 +27,7 @@ export default function LoginPage() {
 
     try {
       console.log('Sending login request to API...')
+      const start = performance.now()
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -35,9 +36,16 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       })
 
-      console.log('Login API response status:', response.status)
+      const durationMs = Math.round(performance.now() - start)
+      console.log('Login API response meta:', {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        durationMs,
+        requestId: response.headers.get('x-request-id') || response.headers.get('x-vercel-id') || null,
+      })
       const data = await response.json()
-      console.log('Login API response data:', { success: data.success, hasUser: !!data.user, hasToken: !!data.token })
+      console.log('Login API response summary:', { success: data.success, hasUser: !!data.user, hasToken: !!data.token, message: data?.message, error: data?.error || null })
 
       if (!data.success) {
         console.error('Login failed:', data.error)

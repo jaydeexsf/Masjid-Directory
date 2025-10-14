@@ -40,6 +40,7 @@ export default function RegisterPage() {
     
     try {
       console.log('Sending registration request to API...')
+      const start = performance.now()
       const response = await fetch('/api/mosques', {
         method: 'POST',
         headers: {
@@ -48,9 +49,22 @@ export default function RegisterPage() {
         body: JSON.stringify(formData),
       })
 
-      console.log('RegisterPage: fetch POST /api/mosques status', response.status)
+      const durationMs = Math.round(performance.now() - start)
+      console.log('RegisterPage: fetch POST /api/mosques result', {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        durationMs,
+        requestId: response.headers.get('x-request-id') || response.headers.get('x-vercel-id') || null,
+      })
       const data = await response.json()
-      console.log('RegisterPage: fetch POST /api/mosques response body', data)
+      console.log('RegisterPage: response payload summary', {
+        success: data?.success,
+        message: data?.message,
+        mosqueId: data?.mosque?._id,
+        userId: data?.user?._id,
+        error: data?.error || null,
+      })
 
       if (data.success) {
         console.log('Registration successful! Redirecting to success page...')

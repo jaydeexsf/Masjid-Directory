@@ -64,13 +64,16 @@ interface MosqueRegistrationFormProps {
 export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: MosqueRegistrationFormProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [uiAlert, setUiAlert] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-    watch
+    watch,
+    trigger,
+    setFocus
   } = useForm<MosqueFormData>({
     resolver: zodResolver(mosqueSchema) as unknown as Resolver<MosqueFormData>
   })
@@ -118,7 +121,7 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
               break
           }
           
-          alert(errorMessage)
+          setUiAlert({ type: 'error', message: errorMessage })
         },
         {
           enableHighAccuracy: true,
@@ -128,7 +131,7 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
       )
     } else {
       console.error('Geolocation is not supported by this browser')
-      alert('Geolocation is not supported by this browser. Please enter coordinates manually.')
+      setUiAlert({ type: 'error', message: 'Geolocation is not supported by this browser. Please enter coordinates manually.' })
     }
   }
 
@@ -151,14 +154,51 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
 
   const onFormError = (errors: any) => {
     console.error('MosqueRegistrationForm: validation errors', errors)
-    // Optional: surface a generic error toast/alert without blocking
+    setUiAlert({ type: 'error', message: 'Please fix the highlighted fields before continuing.' })
+    try {
+      const firstErrorField = Object.keys(errors)[0]
+      if (firstErrorField) {
+        // Focus top-level field; nested fields will still scroll user to area
+        // @ts-expect-error dynamic name is acceptable here
+        setFocus(firstErrorField)
+      }
+    } catch {}
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3))
+  const nextStep = async () => {
+    // Validate only fields relevant to the current step
+    let valid = true
+    if (currentStep === 1) {
+      valid = await trigger(['name', 'address', 'city', 'state', 'country', 'postalCode'])
+    } else if (currentStep === 2) {
+      valid = await trigger([
+        'latitude',
+        'longitude',
+        'contactInfo.phone',
+        'contactInfo.email',
+        'contactInfo.website',
+        'imam.name',
+      ])
+    }
+    if (!valid) {
+      setUiAlert({ type: 'error', message: 'Please correct the highlighted fields to proceed.' })
+      return
+    }
+    setUiAlert(null)
+    setCurrentStep(prev => Math.min(prev + 1, 3))
+  }
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit, onFormError)} className="space-y-8">
+      {uiAlert && (
+        <div className={
+          `rounded-lg p-4 mb-2 border ${uiAlert.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-green-50 border-green-200 text-green-800'}`
+        }>
+          {uiAlert.message}
+        </div>
+      )}
       {/* Progress Indicator */}
       <div className="flex items-center justify-center space-x-4 mb-8">
         {[1, 2, 3].map((step) => (
