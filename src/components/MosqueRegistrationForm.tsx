@@ -25,6 +25,25 @@ const lngSchema = z
   }, z.number())
   .optional()
 
+// Normalize and validate website URLs. Empty is allowed, otherwise must be a valid URL
+const websiteSchema = z
+  .preprocess((value) => {
+    const raw = (typeof value === 'string' ? value : '').trim()
+    if (!raw) return ''
+    const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+    return withProtocol
+  }, z.string().url('Enter a valid website URL'))
+  .refine((val) => {
+    if (!val) return true
+    try {
+      const hostname = new URL(val).hostname
+      return /\.[a-z]{2,}$/i.test(hostname)
+    } catch {
+      return false
+    }
+  }, { message: 'Website must include a valid domain (e.g., .com, .org)' })
+  .or(z.literal(''))
+
 const mosqueSchema = z.object({
   name: z.string().min(2, 'Masjid name must be at least 2 characters'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
@@ -38,7 +57,7 @@ const mosqueSchema = z.object({
   contactInfo: z.object({
     phone: z.string().optional(),
     email: z.string().email().optional().or(z.literal('')),
-    website: z.string().url().optional().or(z.literal('')),
+    website: websiteSchema,
   }),
   imam: z.object({
     name: z.string().min(2, 'Imam name is required'),
@@ -92,6 +111,8 @@ export default function MosqueRegistrationForm({ onSubmit, isSubmitting }: Mosqu
           setLocation({ lat, lng })
           setValue('latitude', lat)
           setValue('longitude', lng)
+          // Re-validate coordinates so any prior errors are cleared immediately
+          try { void trigger(['latitude', 'longitude']) } catch {}
         },
         (error) => {
           console.error('Geolocation error details:', {
