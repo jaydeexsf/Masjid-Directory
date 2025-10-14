@@ -8,11 +8,15 @@ export async function POST(request: NextRequest) {
     console.log('[API] POST /api/auth/register - incoming request', {
       url: request.url,
       ts: new Date().toISOString(),
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
     })
     const db = await connectDBSafe()
     
     if (!db) {
-      console.log('[API] POST /api/auth/register - DB unavailable')
+      console.log('[API] POST /api/auth/register - DB unavailable', {
+        hasMongoUri: !!process.env.MONGODB_URI,
+      })
       return NextResponse.json(
         { success: false, error: 'Database unavailable' },
         { status: 503 }

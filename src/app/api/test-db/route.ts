@@ -7,7 +7,16 @@ export async function GET() {
     
     if (!db) {
       return NextResponse.json(
-        { success: false, error: 'Failed to connect to MongoDB' },
+        { 
+          success: false, 
+          error: 'Failed to connect to MongoDB',
+          env: {
+            hasMongoUri: !!process.env.MONGODB_URI,
+            nodeEnv: process.env.NODE_ENV,
+            vercelEnv: process.env.VERCEL_ENV,
+            region: process.env.VERCEL_REGION,
+          }
+        },
         { status: 500 }
       );
     }
@@ -21,6 +30,11 @@ export async function GET() {
       dbName: db.connection.name,
       dbHost: db.connection.host,
       dbPort: db.connection.port,
+      env: {
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV,
+        region: process.env.VERCEL_REGION,
+      }
     });
     
   } catch (error) {
