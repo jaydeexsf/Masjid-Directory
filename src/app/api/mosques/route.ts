@@ -67,9 +67,25 @@ export async function POST(request: NextRequest) {
     })
     const db = await connectDBSafe()
     if (!db) {
-      console.log('[API] POST /api/mosques - DB unavailable')
+      console.log('[API] POST /api/mosques - DB unavailable', {
+        hasMongoUri: !!process.env.MONGODB_URI,
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV,
+        region: process.env.VERCEL_REGION,
+      })
       return NextResponse.json(
-        { success: false, error: 'Database unavailable in demo mode' },
+        {
+          success: false,
+          error: 'Database unavailable',
+          env: {
+            hasMongoUri: !!process.env.MONGODB_URI,
+            nodeEnv: process.env.NODE_ENV,
+            vercelEnv: process.env.VERCEL_ENV,
+            region: process.env.VERCEL_REGION,
+          },
+          hint:
+            'Ensure MONGODB_URI is set on Vercel and Atlas Network Access allows your deployment/IP. Use the Vercel-MongoDB Atlas integration or temporarily 0.0.0.0/0 for testing.'
+        },
         { status: 503 }
       )
     }
