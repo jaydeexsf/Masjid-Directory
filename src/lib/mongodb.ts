@@ -48,7 +48,10 @@ export async function connectDBSafe(): Promise<typeof mongoose | null> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-    };
+      // make failures surface faster and clearer in serverless
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 20000,
+    } as any;
 
     console.log('[DB] Attempting to connect to MongoDB', {
       uri: maskConnectionString(MONGODB_URI),
